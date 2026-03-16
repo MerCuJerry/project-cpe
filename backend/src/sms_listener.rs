@@ -247,7 +247,7 @@ pub async fn start_sms_listener(conn: Connection, db: Arc<Database>, webhook: Ar
                             direction: "incoming".to_string(),
                             phone_number: sender,
                             content,
-                            timestamp: chrono::Utc::now().to_rfc3339(),
+                            timestamp: chrono::Local::now().to_rfc3339(),
                             status: "received".to_string(),
                             pdu: None,
                         };
@@ -265,14 +265,14 @@ pub async fn start_sms_listener(conn: Connection, db: Arc<Database>, webhook: Ar
 /// 活跃通话追踪
 use std::collections::HashMap;
 use std::sync::Mutex as StdMutex;
-use chrono::Utc;
+use chrono::Local;
 
 /// 通话追踪信息
 struct ActiveCall {
     db_id: i64,
     phone_number: String,
     direction: String,
-    start_time: chrono::DateTime<Utc>,
+    start_time: chrono::DateTime<Local>,
     answered: bool,
 }
 
@@ -339,7 +339,7 @@ pub async fn start_call_listener(conn: Connection, db: Arc<Database>, webhook: A
                                 db_id,
                                 phone_number,
                                 direction: direction.to_string(),
-                                start_time: Utc::now(),
+                                start_time: Local::now(),
                                 answered,
                             });
                         }
@@ -353,8 +353,8 @@ pub async fn start_call_listener(conn: Connection, db: Arc<Database>, webhook: A
                         let mut active_calls = ACTIVE_CALLS.lock().unwrap();
                         if let Some(call) = active_calls.remove(&path_str) {
                             // Calculate duration
-                            let duration = (Utc::now() - call.start_time).num_seconds();
-                            let end_time = Utc::now().to_rfc3339();
+                            let duration = (Local::now() - call.start_time).num_seconds();
+                            let end_time = Local::now().to_rfc3339();
                             
                             // Determine final direction
                             let final_direction = if !call.answered && call.direction == "incoming" {

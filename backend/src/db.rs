@@ -12,7 +12,7 @@
 //!
 //! 使用 SQLite 存储短信历史记录和通话记录
 
-use chrono::Utc;
+use chrono::Local;
 use rusqlite::{params, Connection, Result};
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
@@ -139,7 +139,7 @@ impl Database {
         pdu: Option<&str>,
     ) -> Result<i64> {
         let conn = self.conn.lock().unwrap();
-        let timestamp = Utc::now().to_rfc3339();
+        let timestamp = Local::now().to_rfc3339();
         
         conn.execute(
             "INSERT INTO sms_messages (direction, phone_number, content, timestamp, status, pdu)
@@ -281,7 +281,7 @@ impl Database {
         answered: bool,
     ) -> Result<i64> {
         let conn = self.conn.lock().unwrap();
-        let start_time = Utc::now().to_rfc3339();
+        let start_time = Local::now().to_rfc3339();
         
         conn.execute(
             "INSERT INTO call_history (direction, phone_number, duration, start_time, answered)
@@ -295,7 +295,7 @@ impl Database {
     /// 更新通话记录（通话结束时调用）
     pub fn update_call_end(&self, id: i64, duration: i64, answered: bool) -> Result<()> {
         let conn = self.conn.lock().unwrap();
-        let end_time = Utc::now().to_rfc3339();
+        let end_time = Local::now().to_rfc3339();
         
         conn.execute(
             "UPDATE call_history SET duration = ?1, end_time = ?2, answered = ?3 WHERE id = ?4",
@@ -307,7 +307,7 @@ impl Database {
     /// 标记通话为未接来电
     pub fn mark_call_missed(&self, id: i64) -> Result<()> {
         let conn = self.conn.lock().unwrap();
-        let end_time = Utc::now().to_rfc3339();
+        let end_time = Local::now().to_rfc3339();
         
         conn.execute(
             "UPDATE call_history SET direction = 'missed', end_time = ?1, answered = 0 WHERE id = ?2",
